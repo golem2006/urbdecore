@@ -206,6 +206,9 @@ body {
 	font-size: 0.9rem;
 	transition: background-color 0.2s;
 }
+ .tedNone {
+	text-decoration: none;
+}
 
 .add-to-cart:hover {
 	background-color: #2980b9;
@@ -372,6 +375,70 @@ body {
 }
 .filters-sidebar.show_block {
     display: block;
+}
+
+.content-wrapper form { /* Выбираем форму внутри .content-wrapper */
+    background-color: #ffffff; /* Белый фон формы */
+    padding: 30px;              /* Внутренние отступы */
+    border-radius: 8px;         /* Скругленные углы */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Легкая тень */
+    display: flex;              /* Используем flexbox для элементов формы */
+    flex-direction: column;     /* Располагаем элементы вертикально */
+    align-items: justify;        /* Центрируем элементы внутри формы по горизонтали */
+    gap: 15px;                  /* Отступ между элементами формы */
+    max-width: 400px;           /* Максимальная ширина формы */
+    width: 100%;   
+	margin: 0 auto;             /* Форма занимает всю ширину контейнера (до max-width) */
+}
+
+/* Стили для полей ввода */
+.content-wrapper form input[type="text"],
+.content-wrapper form input[type="password"] {
+    width: calc(100% - 20px);  /* Ширина поля ввода (100% минус padding) */
+    padding: 10px;              /* Внутренние отступы */
+    border: 1px solid #cccccc;  /* Граница */
+    border-radius: 4px;         /* Скругленные углы */
+    font-size: 16px;            /* Размер шрифта */
+    box-sizing: border-box;     /* Учитываем padding и border в общей ширине */
+}
+
+/* Стили для кнопки "Войти" */
+.content-wrapper form input[type="submit"] {
+    width: 100%;                /* Кнопка на всю ширину формы */
+    padding: 12px 20px;         /* Внутренние отступы */
+    background-color: #007bff;  /* Синий фон кнопки */
+    color: white;               /* Белый цвет текста */
+    border: none;               /* Убираем границу */
+    border-radius: 4px;         /* Скругленные углы */
+    font-size: 18px;            /* Размер шрифта */
+    cursor: pointer;            /* Изменяем курсор при наведении */
+    transition: background-color 0.3s ease; /* Плавное изменение цвета при наведении */
+}
+
+/* Эффект при наведении на кнопку "Войти" */
+.content-wrapper form input[type="submit"]:hover {
+    background-color: #0056b3; /* Более темный синий */
+}
+
+/* Стили для текста "Нет аккаунта? Зарегистрироваться" */
+.content-wrapper i {
+    margin-top: 15px;           /* Отступ сверху */
+    font-size: 14px;            /* Размер шрифта */
+    color: #555555;             /* Цвет текста */
+    text-align: justify;         /* Центрируем текст */
+}
+
+/* Стили для ссылки "Зарегистрироваться" */
+.content-wrapper i a {
+    color: #007bff;             /* Цвет ссылки */
+    text-decoration: none;      /* Убираем подчеркивание */
+    font-weight: bold;          /* Жирный шрифт */
+    transition: color 0.3s ease; /* Плавное изменение цвета */
+}
+
+.content-wrapper i a:hover {
+    color: #0056b3;             /* Более темный синий при наведении */
+    text-decoration: underline; /* Добавляем подчеркивание при наведении */
 }
 
 

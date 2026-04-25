@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html>
 	<head>
@@ -9,6 +12,17 @@
 	<body>
         <?php
         require_once('php/config.php');
+        $countCart = 0;
+        if (isset($_SESSION['userId'])) {
+            $userId = intval($_SESSION['userId']);
+            $stmt = $conn->prepare("SELECT COUNT(id) FROM `cart` WHERE `userId` = ?");
+            $stmt->bind_param('i', $userId);
+            $stmt->execute();
+            $stmt->store_result();
+            $stmt->bind_result($countCart);
+            $stmt->fetch();
+        }
+
         $productsHtml = '';
         // Проверяем, были ли GET-параметры 'cat' или 'offer'
         if ($_SERVER['REQUEST_METHOD'] == "GET" && (isset($_GET['cat']) || isset($_GET['offer']))) {
@@ -149,7 +163,7 @@
                             <span class="price">' . $displayPrice . '</span>
                         </div>
                         <div class="product-rating">' . $ratingStars . ' (' . ($prod['comsValue'] ?? 0) . ')</div>
-                        <button class="add-to-cart">Add to Cart</button>
+                        <a class="tedNone" href="php/add.php?prodId='.$prod['id'].'"><button class="add-to-cart">Add to Cart</button></a>
                     </div>
                 ';
             }
@@ -162,21 +176,27 @@
 				<a href="index.php" class="logo">Urban Decor</a>
 				<div class="header-actions">
 					<button class="search-btn">Search</button>
-					<button class="account-btn">Account</button>
-					<button class="cart-btn">Cart (0)</button>
+                    <?php if (!isset($_SESSION['userId'])) { ?>
+					    <a href="login.php"><button class="account-btn">Войти</button></a>
+                    <?php } else { 
+                        echo (htmlspecialchars($_SESSION['login'])); ?>
+                        <a href="php/exit.php"><button class="account-btn">Выйти</button></a>
+                        <?php } ?>
+					<button class="cart-btn">Cart (<?php echo htmlspecialchars($countCart) ?>)</button>
 				</div>
 			</header>
 			
 			<nav class="main-menu">
-				<ul>
-					<li><a href="#" class="active">All Items</a></li>
-					<li><a href="#">Furniture</a></li>
-					<li><a href="#">Lighting</a></li>
-					<li><a href="#">Textiles</a></li>
-					<li><a href="#">Decor</a></li>
-					<li><a href="#">Sale</a></li>
-				</ul>
-			</nav>
+                <ul>
+                    <li><a href="index.php" class="active">Все Предметы</a></li>
+                    <li><a href="index.php?cat=Фурнитура">Фурнитура</a></li>
+                    <li><a href="index.php?cat=Освещение">Освещение</a></li>
+                    <li><a href="index.php?cat=Текстиль">Текстиль</a></li>
+                    <li><a href="index.php?cat=Мебель">Мебель</a></li>
+                    <li><a href="index.php?cat=Декор">Декор</a></li>
+                    <li><a href="index.php?offer=Sale Items">Распродажа</a></li>
+                </ul>
+            </nav>
 			
 			<div class="content-wrapper">
 				<button class="filter-toggle">Show Filters</button>
@@ -192,25 +212,28 @@
 					</div>
 					
 					<div class="filter-section">
-						<div class="filter-title">Categories</div>
+						<div class="filter-title">Категории</div>
 						<div class="filter-options">
 							<label class="filter-option">
-								<input type="checkbox"> Furniture
+								<input type="checkbox"> Фурнитура
 							</label>
 							<label class="filter-option">
-								<input type="checkbox"> Lighting
+								<input type="checkbox"> Освещение
 							</label>
 							<label class="filter-option">
-								<input type="checkbox"> Textiles
+								<input type="checkbox"> Текстиль
 							</label>
 							<label class="filter-option">
-								<input type="checkbox"> Decor
+								<input type="checkbox"> Мебель
+							</label>
+                            <label class="filter-option">
+								<input type="checkbox"> Декор
 							</label>
 						</div>
 					</div>
 					
 					<div class="filter-section">
-						<div class="filter-title">Price Range</div>
+						<div class="filter-title">Ценовой диапозон</div>
 						<div class="price-range">
 							<input type="range" min="0" max="<?php echo htmlspecialchars($maxRange); ?>"
                             value="<?php echo htmlspecialchars($maxRange); ?>">
@@ -222,14 +245,14 @@
 					</div>
 					
 					<div class="filter-section">
-						<div class="filter-title">Special Offers</div>
+						<div class="filter-title">Специальные предложения</div>
 						<div class="filter-options">
 							<label class="filter-option">
-								<input type="checkbox"> Sale Items
-							</label>
-							<label class="filter-option">
-								<input type="checkbox"> New Arrivals
-							</label>
+                                <input type="radio" name="special-offer" value="Sale Items"> Sale Items
+                            </label>
+                            <label class="filter-option">
+                                <input type="radio" name="special-offer" value="New Arrivals"> New Arrivals
+                            </label>
 						</div>
 					</div>
 					
