@@ -8,7 +8,7 @@ if (!isset($_SESSION['userId'])) {
     exit();
 }
 
-    $stmt = $conn->prepare("SELECT `prodId` FROM `cart` WHERE `userId` = ?");
+    $stmt = $conn->prepare("SELECT `id`, `prodId` FROM `cart` WHERE `userId` = ?");
     $stmt->bind_param('i', $_SESSION['userId']);
     $stmt->execute();
    
@@ -18,9 +18,9 @@ if (!isset($_SESSION['userId'])) {
 
 	// Если запрос не пустой добавляем каждый элемент в массив
 	if ($stmt->num_rows > 0) {
-	    $stmt->bind_result($prodId);
+	    $stmt->bind_result($cartId, $prodId);
 	    while ($stmt->fetch()) {
-	        $cart[] = $prodId;
+	        $cart[] = ['prodId' => $prodId, 'cartId' => $cartId];
 	    }
 	}
 ?>
@@ -38,10 +38,11 @@ if (!isset($_SESSION['userId'])) {
 	$productsHtml = '';
 	foreach ($cart as $key => $productId) {
 		$stmt = $conn->prepare("SELECT * FROM `products` WHERE `id` = ?");
-    	$stmt->bind_param('i', $productId);
+    	$stmt->bind_param('i', $productId['prodId']);
     	$stmt->execute();
 		$result = $stmt->get_result();
         $product = $result->fetch_all(MYSQLI_ASSOC);
+		$product[0]['cartId'] = $productId['cartId'];
 		$productsResultArr[] = $product;
 	}
 	if (!empty($productsResultArr)) {
@@ -97,8 +98,8 @@ if (!isset($_SESSION['userId'])) {
             	                <span class="price">' . $displayPrice . '</span>
             	            </div>
             	            <div class="product-rating">' . $ratingStars . ' (' . ($prod['comsValue'] ?? 0) . ')</div>
-            	            <a class="tedNone" href="php/buy.php?prodId='.$prod['id'].'"><button class="add-to-cart">Купить</button></a>
-							<a class="tedNone" href="php/delete.php?prodId='.$prod['id'].'"><button class="add-to-cart delete">Удалить</button></a>
+            	            <a class="tedNone" href="php/buy.php?cartId='.$prod['cartId'].'"><button class="add-to-cart">Купить</button></a>
+							<a class="tedNone" href="php/delete.php?cartId='.$prod['cartId'].'"><button class="add-to-cart delete">Удалить</button></a>
             	        </div>
             	    ';
             	}
@@ -120,7 +121,10 @@ if (!isset($_SESSION['userId'])) {
 				</main>
 				
 			</div>
+			<?php if (!empty($productsResultArr)) { ?>
 			<a class="tedNone" href="php/buyAll.php"><button class="add-to-cart buyAll">Купить Всё</button></a>
+			<?php } ?>
+
 
 			<footer class="footer">
 				<div class="footer-content">
