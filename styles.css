@@ -441,6 +441,20 @@ body {
     text-decoration: underline; /* Добавляем подчеркивание при наведении */
 }
 
+.delete {
+	background-color: #95a5a6;
+}
+.delete:hover {
+	background-color: #555555;
+}
+.buyAll {
+	background-color: green;
+	width: 25%;
+	margin: 25px 0 15px;
+}
+.buyAll:hover {
+	background-color: #006200;
+}
 
 @media (max-width: 992px) {
 	.filters-sidebar {

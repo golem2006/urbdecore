@@ -8,18 +8,21 @@ if (!isset($_SESSION['userId'])) {
     exit();
 }
 
-    $stmt = $conn->prepare("SELECT `id`, `pasw` FROM `users` WHERE `login` = ?");
-    $stmt->bind_param('s', $login);
+    $stmt = $conn->prepare("SELECT `prodId` FROM `cart` WHERE `userId` = ?");
+    $stmt->bind_param('i', $_SESSION['userId']);
     $stmt->execute();
-    $stmt->store_result();
-    $stmt->bind_result($id, $hash);
-    $stmt->fetch();
-    if (password_verify($pasw, $hash)) {
-        $_SESSION['userId'] = $id;
-        $_SESSION['login'] = $login;
-        header('Location: index.php');
-        exit();
-    }
+   
+	$stmt->store_result();
+
+	$cart = [];
+
+	// Если запрос не пустой добавляем каждый элемент в массив
+	if ($stmt->num_rows > 0) {
+	    $stmt->bind_result($prodId);
+	    while ($stmt->fetch()) {
+	        $cart[] = $prodId;
+	    }
+	}
 ?>
 <!DOCTYPE html>
 <html>
@@ -31,14 +34,93 @@ if (!isset($_SESSION['userId'])) {
 	</head>
 <body>
     <?php
+	$productsResultArr = [];
+	$productsHtml = '';
+	foreach ($cart as $key => $productId) {
+		$stmt = $conn->prepare("SELECT * FROM `products` WHERE `id` = ?");
+    	$stmt->bind_param('i', $productId);
+    	$stmt->execute();
+		$result = $stmt->get_result();
+        $product = $result->fetch_all(MYSQLI_ASSOC);
+		$productsResultArr[] = $product;
+	}
+	if (!empty($productsResultArr)) {
+            foreach ($productsResultArr as $productsResult) {
+            	foreach ($productsResult as $prod) {
+            	    // Предполагаем, что $prod - это ассоциативный массив с ключами:
+            	    // 'id', 'name', 'category', 'rating', 'price', 'lowPrice', 'sale', 'new', 'comsValue', 'imgHref'
+				
+            	    $intPrice = intval($prod['price']);
+				
 
+            	    $originalPrice = $prod['price'];
+            	    $lowPrice = $prod['lowPrice'] ?? 0; // Если lowPrice не задан, считаем его 0
+				
+            	    $displayPrice = '';
+            	    $displayOldPrice = '';
+            	    $badge = '';
+				
+            	    // Формирование цен для отображения
+            	    if ($prod['sale'] == 1 && $lowPrice > 0 && $originalPrice > $lowPrice) {
+            	        $displayOldPrice = '<span class="old-price">$' . $originalPrice . '</span>';
+            	        $displayPrice = '₽' . $lowPrice;
+            	        $badge = '<div class="product-badge">Sale</div>';
+            	    } elseif ($prod['new'] == 1) {
+            	        $displayPrice = '₽' . $originalPrice;
+            	        $badge = '<div class="product-badge">New</div>';
+            	    } elseif ($prod['sale'] == 1 && $lowPrice > 0 && $originalPrice <= $lowPrice) { // Случай, когда sale=1, но lowPrice не ниже originalPrice
+            	        $displayPrice = '₽' . $originalPrice;
+            	        // В этом случае, если lowPrice не меньше originalPrice, мы не показываем скидку,
+            	        // но если есть другой флаг, например 'sale', то можем показать "Sale"
+            	        // В данном примере, если sale=1, но lowPrice не уменьшает цену, мы не показываем badge,
+            	        // но вы можете добавить логику для отображения "Sale" отдельно.
+            	    }
+            	    else {
+            	        $displayPrice = '₽' . $originalPrice;
+            	    }
+				
+            	    // Формирование рейтинга
+            	    $ratingStars = str_repeat('★', $prod['rating']) . str_repeat('☆', 5 - $prod['rating']);
+				
+            	    // Генерация HTML для одного товара
+            	    $productsHtml .= '
+            	        <div class="product-card">
+            	            ' . ($prod['new'] == 1 ? '<div class="product-badge">New</div>' : '') . '
+            	            ' . (($prod['sale'] == 1 && $lowPrice > 0 && $originalPrice > $lowPrice) ? '<div class="product-badge">Sale</div>' : '') . '
+            	            ' . (($prod['sale'] == 0 && $lowPrice > 0 && $originalPrice > $lowPrice) ? '<div class="product-badge">-' . round(100 * (1 - $lowPrice / $originalPrice)) . '%</div>' : '') . '
+            	            <div class="product-image" style="background-color: #' . (($prod['rating'] ?? 0) % 2 == 0 ? 'f5f5f5' : 'eeeeee') . ';">
+            	            <img alt="img'.$prod['id'].'" src="'. $prod['imgHref'].'"></div>
+            	            <div class="product-category">' . htmlspecialchars($prod['category']) . '</div>
+            	            <h3>' . htmlspecialchars($prod['name']) . '</h3>
+            	            <div class="price-container">
+            	                ' . $displayOldPrice . '
+            	                <span class="price">' . $displayPrice . '</span>
+            	            </div>
+            	            <div class="product-rating">' . $ratingStars . ' (' . ($prod['comsValue'] ?? 0) . ')</div>
+            	            <a class="tedNone" href="php/buy.php?prodId='.$prod['id'].'"><button class="add-to-cart">Купить</button></a>
+							<a class="tedNone" href="php/delete.php?prodId='.$prod['id'].'"><button class="add-to-cart delete">Удалить</button></a>
+            	        </div>
+            	    ';
+            	}
+			}
+        	} elseif (empty($productsHtml)) { // Если нет товаров и не было ошибки
+        	    $productsHtml = "<p>Товары не найдены.</p>";
+        	}
+		
     ?>
 <div class="container">
 			<header class="main-header">
 				<a href="index.php" class="logo">Urban Decor</a>
 			</header>
-			
-			<div class="content-wrapper"></div>
+			<h2>Корзина</h2>
+			<div class="content-wrapper">
+				
+				<main class="products">
+                    <?php echo $productsHtml; ?>
+				</main>
+				
+			</div>
+			<a class="tedNone" href="php/buyAll.php"><button class="add-to-cart buyAll">Купить Всё</button></a>
 
 			<footer class="footer">
 				<div class="footer-content">

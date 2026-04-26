@@ -163,7 +163,7 @@ session_start();
                             <span class="price">' . $displayPrice . '</span>
                         </div>
                         <div class="product-rating">' . $ratingStars . ' (' . ($prod['comsValue'] ?? 0) . ')</div>
-                        <a class="tedNone" href="php/add.php?prodId='.$prod['id'].'"><button class="add-to-cart">Add to Cart</button></a>
+                        <a class="tedNone" href="php/add.php?prodId='.$prod['id'].'"><button class="add-to-cart">В Корзину</button></a>
                     </div>
                 ';
             }
@@ -181,8 +181,9 @@ session_start();
                     <?php } else { 
                         echo (htmlspecialchars($_SESSION['login'])); ?>
                         <a href="php/exit.php"><button class="account-btn">Выйти</button></a>
+                        <a href="cart.php"><button class="cart-btn">Корзина (<?php echo htmlspecialchars($countCart) ?>)</button></a>
                         <?php } ?>
-					<button class="cart-btn">Cart (<?php echo htmlspecialchars($countCart) ?>)</button>
+					
 				</div>
 			</header>
 			
